@@ -32,6 +32,5 @@ public class Phone {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_USER_LOGIN")
     @JsonProperty(access = Access.WRITE_ONLY)
-    @JsonBackReference(value = "ID_EXAM")
     private UserLogin userLogin;
 }

@@ -53,6 +53,8 @@ public class NisumServiceImpl implements NisumService {
 
     public static final String INVALID_FORMAT_PASSWORD = "Formato de password invalido";
 
+    public static final String USER_CORRECT_CREATED = "Usuario creado con exito";
+
     @Override
     public ResponseDTO createLoginUser(UserLogin userLogin) {
 
@@ -71,8 +73,8 @@ public class NisumServiceImpl implements NisumService {
 
         long uuid = UUID.randomUUID().getMostSignificantBits();
 
-        if(uuid < 0L){
-            uuid = uuid*-1L;
+        if (uuid < 0L) {
+            uuid = uuid * -1L;
         }
         Long finalUuid = uuid;
 
@@ -91,7 +93,7 @@ public class NisumServiceImpl implements NisumService {
             phoneRepository.save(phone);
         });
 
-        return ResponseDTO.builder().idUserLogin(uuid).token(token).last_login(LocalDate.now()).created(LocalDate.now()).isActive(Boolean.TRUE).build();
+        return ResponseDTO.builder().idUserLogin(uuid).token(token).last_login(LocalDate.now()).created(LocalDate.now()).isActive(Boolean.TRUE).message(USER_CORRECT_CREATED).build();
     }
 
     private Boolean validateRegex(String email, String regex) {
@@ -101,18 +103,26 @@ public class NisumServiceImpl implements NisumService {
         return mather.find();
     }
 
-    public void deleteUserLogin(Long idUserLogin){
+    public void deleteUserLogin(Long idUserLogin) {
+        List<Phone> phoneList = phoneRepository.findByUserLogin(UserLogin.builder().idUserLogin(idUserLogin).build());
+        phoneList.forEach(phone -> phoneRepository.delete(phone));
         userLoginRepository.deleteById(idUserLogin);
     }
 
-    public void deletePhone(Long idPhone){
+    public void deletePhone(Long idPhone) {
         phoneRepository.deleteById(idPhone);
     }
 
     @Override
     public List<UserLogin> getUserLoginList() {
-        return userLoginRepository.findAll();
+        List<UserLogin> userList = userLoginRepository.findAll();
+        userList.forEach(userLogin -> {
+            List<Phone> phoneList = phoneRepository.findByUserLogin(userLogin);
+            userLogin.setPhones(phoneList);
+        });
+        return userList;
     }
+
     @Override
     public List<Phone> getPhoneList() {
         return phoneRepository.findAll();
